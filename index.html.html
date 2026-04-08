@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Challenges — Vocabulary Trainer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#f8f7f4;min-height:100vh;padding:1rem}
+.app{max-width:800px;margin:0 auto;padding:1rem 0}
+.app-header{text-align:center;padding:2rem 1rem 1.5rem;border-bottom:1px solid #e0ddd6;margin-bottom:1.5rem}
+.app-header h1{font-size:22px;font-weight:500;letter-spacing:-0.3px;margin-bottom:0.25rem;color:#1a1a1a}
+.app-header p{font-size:14px;color:#6b6b6b}
+.topic-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem}
+.topic-btn{padding:0.75rem 0.5rem;border:1px solid #d0cdc6;border-radius:12px;background:#fff;cursor:pointer;font-size:13px;font-weight:500;color:#6b6b6b;text-align:center;transition:all 0.15s;position:relative;font-family:inherit}
+.topic-btn:hover{background:#f0ede8;color:#1a1a1a}
+.topic-btn.active{border-color:#888;color:#1a1a1a;background:#f0ede8}
+.topic-btn .icon{font-size:18px;display:block;margin-bottom:4px}
+.chk-wrap{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#22c55e;margin-left:4px;vertical-align:middle;opacity:0;transition:opacity 0.3s}
+.chk-wrap.done{opacity:1}
+.chk-wrap svg{display:block}
+.section{display:none}
+.section.active{display:block}
+.tab-bar{display:flex;border-bottom:1px solid #e0ddd6;margin-bottom:1.5rem;overflow-x:auto}
+.tab{padding:0.6rem 1rem;font-size:13px;color:#6b6b6b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;white-space:nowrap;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:#1a1a1a}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.vocab-intro{font-size:14px;color:#6b6b6b;margin-bottom:1rem;line-height:1.6}
+.vocab-table{width:100%;border-collapse:collapse;font-size:14px}
+.vocab-table th{text-align:left;font-weight:500;font-size:12px;color:#6b6b6b;padding:0.4rem 0.6rem;border-bottom:1px solid #e0ddd6}
+.vocab-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #e0ddd6;vertical-align:top;line-height:1.5}
+.vocab-table td:first-child{font-weight:500}
+.vocab-table td .example{font-size:12px;color:#6b6b6b;font-style:italic;margin-top:2px}
+.expl-block{background:#f0ede8;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem;font-size:14px;line-height:1.7}
+.expl-block h3{font-size:15px;font-weight:500;margin-bottom:0.5rem}
+.exercise-card{border:1px solid #e0ddd6;border-radius:12px;padding:1.25rem;margin-bottom:1rem;background:#fff}
+.exercise-card h3{font-size:14px;font-weight:500;margin-bottom:0.5rem;color:#6b6b6b}
+.wordbox{font-size:12px;color:#6b6b6b;margin-bottom:1rem;padding:0.5rem 0.75rem;background:#f0ede8;border-radius:8px;line-height:1.6}
+.gap-list{display:flex;flex-direction:column;gap:0.85rem}
+.gap-row{font-size:14px;line-height:2}
+.gap-input{border:none;border-bottom:1.5px solid #888;background:transparent;font-size:14px;font-family:inherit;color:#1a1a1a;width:140px;text-align:center;outline:none;padding:0 4px}
+.gap-input:focus{border-bottom-color:#1a1a1a}
+.gap-input.correct{border-bottom-color:#22c55e;color:#16a34a}
+.gap-input.wrong{border-bottom-color:#ef4444;color:#dc2626}
+.mc-block{display:flex;flex-direction:column;gap:1.25rem}
+.mc-q-item p{font-size:14px;margin-bottom:0.5rem}
+.mc-options{display:flex;flex-direction:column;gap:5px}
+.mc-btn{padding:0.45rem 0.75rem;border:1px solid #d0cdc6;border-radius:8px;background:#fff;font-size:13px;text-align:left;cursor:pointer;transition:all 0.15s;color:#1a1a1a;font-family:inherit}
+.mc-btn:hover:not(:disabled){background:#f0ede8}
+.mc-btn.correct{border-color:#22c55e;background:#f0fdf4;color:#15803d}
+.mc-btn.wrong{border-color:#ef4444;background:#fef2f2;color:#b91c1c}
+.check-btn{margin-top:1rem;padding:0.5rem 1.25rem;border:1px solid #d0cdc6;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;color:#1a1a1a;transition:all 0.15s;font-family:inherit}
+.check-btn:hover{background:#f0ede8}
+.feedback{margin-top:0.75rem;font-size:13px;padding:0.5rem 0.75rem;border-radius:8px}
+.feedback.ok{background:#f0fdf4;color:#15803d}
+.feedback.err{background:#fef2f2;color:#b91c1c}
+.progress-bar-wrap{height:4px;background:#e0ddd6;border-radius:2px;margin-bottom:1.5rem}
+.progress-bar{height:4px;background:#22c55e;border-radius:2px;transition:width 0.4s}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:0.75rem}
+.match-col{display:flex;flex-direction:column;gap:6px}
+.match-item{padding:0.45rem 0.75rem;border:1px solid #d0cdc6;border-radius:8px;font-size:13px;cursor:pointer;background:#fff;color:#1a1a1a;text-align:center;transition:all 0.15s;line-height:1.4}
+.match-item:hover:not(.matched):not(.selected){background:#f0ede8}
+.match-item.selected{border-color:#1a1a1a;background:#f0ede8}
+.match-item.matched{border-color:#22c55e;background:#f0fdf4;color:#15803d;cursor:default}
+.match-item.wrong-pick{border-color:#ef4444;animation:shake 0.3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="app-header">
+  <h1>Global Challenges — Vocabulary Trainer</h1>
+  <p>English · Year 10 · B1 Level &nbsp;|&nbsp; Choose a topic to get started</p>
+</div>
+
+<div class="topic-nav">
+  <button class="topic-btn active" onclick="showTopic('migration',this)">
+    <span class="icon">🌍</span>Migration
+    <span class="chk-wrap" id="chk-migration"><svg width="8" height="6" viewBox="0 0 8 6"><polyline points="1,3 3,5 7,1" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </button>
+  <button class="topic-btn" onclick="showTopic('ecology',this)">
+    <span class="icon">🌿</span>Ecological Problems
+    <span class="chk-wrap" id="chk-ecology"><svg width="8" height="6" viewBox="0 0 8 6"><polyline points="1,3 3,5 7,1" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </button>
+  <button class="topic-btn" onclick="showTopic('globalisation',this)">
+    <span class="icon">🔗</span>Globalisation
+    <span class="chk-wrap" id="chk-globalisation"><svg width="8" height="6" viewBox="0 0 8 6"><polyline points="1,3 3,5 7,1" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </button>
+</div>
+
+<!-- ========== MIGRATION ========== -->
+<div class="section active" id="sec-migration">
+  <div class="progress-bar-wrap"><div class="progress-bar" id="pb-migration" style="width:0%"></div></div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('migration','expl',this)">Overview</button>
+    <button class="tab" onclick="showTab('migration','vocab',this)">Vocabulary</button>
+    <button class="tab" onclick="showTab('migration','ex1',this)">Exercise 1</button>
+    <button class="tab" onclick="showTab('migration','ex2',this)">Exercise 2</button>
+    <button class="tab" onclick="showTab('migration','ex3',this)">Exercise 3</button>
+  </div>
+
+  <div class="tab-panel active" id="migration-expl">
+    <div class="expl-block"><h3>What is migration?</h3><p>Migration means moving from one place to another to live or work there permanently or for a long time. People who move to a different country are called <strong>migrants</strong>. There are different reasons why people migrate.</p></div>
+    <div class="expl-block"><h3>Push and pull factors</h3><p><strong>Push factors</strong> are reasons that make people want to leave their home country — for example, poverty, war, persecution, or a lack of jobs.<br><br><strong>Pull factors</strong> are reasons that attract people to a new country — for example, better job opportunities, political stability, or a higher standard of living.</p></div>
+    <div class="expl-block"><h3>Types of migrants</h3><p>A <strong>refugee</strong> is a person who has been forced to leave their home country because of war or persecution. An <strong>economic migrant</strong> moves mainly to find work or better living conditions. An <strong>asylum seeker</strong> has applied for protection in a new country but is waiting for a decision.</p></div>
+    <div class="expl-block"><h3>Challenges and opportunities</h3><p><strong>Integration</strong> means becoming part of a new society — learning the language, finding work, and making connections. Host countries provide <strong>humanitarian aid</strong> such as shelter and food. Migrants often face language barriers, discrimination, and difficulties with <strong>border control</strong> procedures.</p></div>
+  </div>
+
+  <div class="tab-panel" id="migration-vocab">
+    <p class="vocab-intro">Learn the key words for this topic. Read each word, its meaning, and the example sentence carefully.</p>
+    <table class="vocab-table">
+      <tr><th>Word / Phrase</th><th>Meaning</th><th>Example sentence</th></tr>
+      <tr><td>to migrate<div class="example">migration (n)</div></td><td>to move to another country to live or work</td><td><em>Many people migrate to find better jobs.</em></td></tr>
+      <tr><td>refugee</td><td>a person forced to leave home due to war or danger</td><td><em>The refugees arrived after a long and dangerous journey.</em></td></tr>
+      <tr><td>asylum seeker</td><td>someone who asks for protection in another country</td><td><em>She applied for asylum after fleeing her home country.</em></td></tr>
+      <tr><td>push factor</td><td>a reason that makes someone want to leave a place</td><td><em>Poverty is a major push factor for migration.</em></td></tr>
+      <tr><td>pull factor</td><td>a reason that attracts people to a new country</td><td><em>Better healthcare is a strong pull factor.</em></td></tr>
+      <tr><td>persecution</td><td>cruel and unfair treatment of a group of people</td><td><em>She fled because of religious persecution.</em></td></tr>
+      <tr><td>integration</td><td>becoming part of a new society</td><td><em>Integration takes time and support from both sides.</em></td></tr>
+      <tr><td>border control</td><td>checks at the border of a country</td><td><em>Strict border controls make migration harder.</em></td></tr>
+      <tr><td>host country</td><td>the country that receives migrants</td><td><em>Germany is a host country for many refugees.</em></td></tr>
+      <tr><td>humanitarian aid</td><td>help given to people in need</td><td><em>Many organisations provide humanitarian aid to refugees.</em></td></tr>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="migration-ex1">
+    <div class="exercise-card">
+      <h3>Exercise 1 — Fill in the gaps (10 sentences)</h3>
+      <div class="wordbox">Words: <em>refugees · integration · pull factor · persecution · host country · migration · asylum seeker · push factor · border control · humanitarian aid</em></div>
+      <div class="gap-list">
+        <div class="gap-row">1. Better job opportunities are a strong <input class="gap-input" data-ans="pull factor" id="mg1"> in Europe.</div>
+        <div class="gap-row">2. After years of religious <input class="gap-input" data-ans="persecution" id="mg2">, the family finally escaped.</div>
+        <div class="gap-row">3. Many <input class="gap-input" data-ans="refugees" id="mg3"> need shelter, food, and medical care.</div>
+        <div class="gap-row">4. Germany has become an important <input class="gap-input" data-ans="host country" id="mg4"> for people from Syria.</div>
+        <div class="gap-row">5. Successful <input class="gap-input" data-ans="integration" id="mg5"> means that newcomers become part of society.</div>
+        <div class="gap-row">6. The lack of clean water was a major <input class="gap-input" data-ans="push factor" id="mg6"> for families leaving the region.</div>
+        <div class="gap-row">7. He applied as an <input class="gap-input" data-ans="asylum seeker" id="mg7"> and waited months for a decision.</div>
+        <div class="gap-row">8. Strict <input class="gap-input" data-ans="border control" id="mg8"> made it difficult for people to cross into the country.</div>
+        <div class="gap-row">9. International organisations sent <input class="gap-input" data-ans="humanitarian aid" id="mg9"> to the camps near the border.</div>
+        <div class="gap-row">10. Global <input class="gap-input" data-ans="migration" id="mg10"> has increased significantly over the past 50 years.</div>
+      </div>
+      <button class="check-btn" onclick="checkGaps('migration','ex1',['mg1','mg2','mg3','mg4','mg5','mg6','mg7','mg8','mg9','mg10'])">Check answers</button>
+      <div class="feedback" id="fb-migration-ex1" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="migration-ex2">
+    <div class="exercise-card">
+      <h3>Exercise 2 — Multiple choice (10 questions)</h3>
+      <p class="vocab-intro">Read each sentence and choose the correct word.</p>
+      <div class="mc-block" id="mc-migration">
+        <div class="mc-q-item"><p>1. A person forced to leave their country because of war is called a ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',0)">economic migrant</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',0)">refugee</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',0)">border guard</button></div></div>
+        <div class="mc-q-item"><p>2. Someone waiting for a decision on their request for protection is called an ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',1)">immigrant worker</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',1)">asylum seeker</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',1)">tourist</button></div></div>
+        <div class="mc-q-item"><p>3. Which of the following is a <em>push</em> factor?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',2)">good healthcare in the new country</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',2)">lack of jobs in the home country</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',2)">free education abroad</button></div></div>
+        <div class="mc-q-item"><p>4. The country that receives migrants is called the ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',3)">host country</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',3)">push country</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',3)">transit zone</button></div></div>
+        <div class="mc-q-item"><p>5. What does "integration" mean in the context of migration?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',4)">returning to your home country</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',4)">crossing a border illegally</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',4)">becoming part of a new society</button></div></div>
+        <div class="mc-q-item"><p>6. Which organisation might provide humanitarian aid to refugees?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',5)">a border patrol agency</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',5)">the UNHCR</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',5)">a customs office</button></div></div>
+        <div class="mc-q-item"><p>7. A person who moves mainly for economic reasons is called an ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',6)">asylum seeker</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',6)">economic migrant</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',6)">refugee</button></div></div>
+        <div class="mc-q-item"><p>8. Which word means "cruel and unfair treatment of a group"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',7)">persecution</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',7)">integration</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',7)">migration</button></div></div>
+        <div class="mc-q-item"><p>9. Better political freedom in another country is an example of a ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',8)">push factor</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',8)">pull factor</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',8)">border control</button></div></div>
+        <div class="mc-q-item"><p>10. What does "border control" refer to?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',9)">a type of integration programme</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-migration',9)">financial support for migrants</button><button class="mc-btn" onclick="mcA(this,'correct','mc-migration',9)">checks at the entry point of a country</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="migration-ex3">
+    <div class="exercise-card">
+      <h3>Exercise 3 — Match the words (10 pairs)</h3>
+      <p class="vocab-intro">Click a word on the left, then click its matching definition on the right.</p>
+      <div class="match-grid">
+        <div class="match-col" id="match-migration-words">
+          <div class="match-item" data-group="migration" data-id="mw1" onclick="matchClick(this)">integration</div>
+          <div class="match-item" data-group="migration" data-id="mw2" onclick="matchClick(this)">humanitarian aid</div>
+          <div class="match-item" data-group="migration" data-id="mw3" onclick="matchClick(this)">border control</div>
+          <div class="match-item" data-group="migration" data-id="mw4" onclick="matchClick(this)">persecution</div>
+          <div class="match-item" data-group="migration" data-id="mw5" onclick="matchClick(this)">pull factor</div>
+          <div class="match-item" data-group="migration" data-id="mw6" onclick="matchClick(this)">refugee</div>
+          <div class="match-item" data-group="migration" data-id="mw7" onclick="matchClick(this)">host country</div>
+          <div class="match-item" data-group="migration" data-id="mw8" onclick="matchClick(this)">asylum seeker</div>
+          <div class="match-item" data-group="migration" data-id="mw9" onclick="matchClick(this)">push factor</div>
+          <div class="match-item" data-group="migration" data-id="mw10" onclick="matchClick(this)">economic migrant</div>
+        </div>
+        <div class="match-col" id="match-migration-defs">
+          <div class="match-item" data-group="migration" data-id="md1" onclick="matchClick(this)">becoming part of a new society</div>
+          <div class="match-item" data-group="migration" data-id="md2" onclick="matchClick(this)">help for people in need</div>
+          <div class="match-item" data-group="migration" data-id="md3" onclick="matchClick(this)">cruel treatment of a group of people</div>
+          <div class="match-item" data-group="migration" data-id="md4" onclick="matchClick(this)">a person who moves for work reasons</div>
+          <div class="match-item" data-group="migration" data-id="md5" onclick="matchClick(this)">checks at a country's boundary</div>
+          <div class="match-item" data-group="migration" data-id="md6" onclick="matchClick(this)">a person forced to flee their country</div>
+          <div class="match-item" data-group="migration" data-id="md7" onclick="matchClick(this)">something that attracts people to move</div>
+          <div class="match-item" data-group="migration" data-id="md8" onclick="matchClick(this)">the country that receives migrants</div>
+          <div class="match-item" data-group="migration" data-id="md9" onclick="matchClick(this)">someone waiting for a protection decision</div>
+          <div class="match-item" data-group="migration" data-id="md10" onclick="matchClick(this)">a reason to leave one's home country</div>
+        </div>
+      </div>
+      <div class="feedback" id="fb-migration-ex3" style="display:none;margin-top:0.75rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ECOLOGY ========== -->
+<div class="section" id="sec-ecology">
+  <div class="progress-bar-wrap"><div class="progress-bar" id="pb-ecology" style="width:0%"></div></div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('ecology','expl',this)">Overview</button>
+    <button class="tab" onclick="showTab('ecology','vocab',this)">Vocabulary</button>
+    <button class="tab" onclick="showTab('ecology','ex1',this)">Exercise 1</button>
+    <button class="tab" onclick="showTab('ecology','ex2',this)">Exercise 2</button>
+    <button class="tab" onclick="showTab('ecology','ex3',this)">Exercise 3</button>
+  </div>
+
+  <div class="tab-panel active" id="ecology-expl">
+    <div class="expl-block"><h3>Climate change</h3><p>The Earth's temperature is rising because humans burn fossil fuels such as coal, oil, and gas. This releases <strong>greenhouse gases</strong> like CO₂ into the atmosphere. The result is <strong>global warming</strong>, which causes more extreme weather events — droughts, floods, and storms.</p></div>
+    <div class="expl-block"><h3>Pollution</h3><p>Pollution means making the environment dirty and harmful. <strong>Air pollution</strong> is caused by car emissions and factory smoke. <strong>Water pollution</strong> comes from chemicals and plastic waste entering rivers and oceans. Pollution harms both wildlife and human health.</p></div>
+    <div class="expl-block"><h3>Loss of biodiversity</h3><p><strong>Biodiversity</strong> refers to the variety of all living things on Earth. When species die out forever, we call this <strong>extinction</strong>. The main causes are habitat destruction, pollution, and climate change. Protecting biodiversity is crucial for a healthy planet.</p></div>
+    <div class="expl-block"><h3>What can we do?</h3><p>Switching to <strong>renewable energy</strong> (solar, wind, water) reduces emissions. Living more <strong>sustainably</strong> means consuming less and wasting less. Governments can pass laws to protect habitats and reduce <strong>deforestation</strong> — the cutting down of large forest areas.</p></div>
+  </div>
+
+  <div class="tab-panel" id="ecology-vocab">
+    <p class="vocab-intro">Learn the key words for this topic. Read each word, its meaning, and the example sentence carefully.</p>
+    <table class="vocab-table">
+      <tr><th>Word / Phrase</th><th>Meaning</th><th>Example sentence</th></tr>
+      <tr><td>greenhouse gas</td><td>a gas (e.g. CO₂) that traps heat in the atmosphere</td><td><em>CO₂ is the most important greenhouse gas.</em></td></tr>
+      <tr><td>global warming</td><td>the rise in the Earth's average temperature</td><td><em>Global warming causes more frequent heatwaves.</em></td></tr>
+      <tr><td>fossil fuels</td><td>coal, oil, and gas formed from ancient living things</td><td><em>Burning fossil fuels releases CO₂ into the air.</em></td></tr>
+      <tr><td>renewable energy</td><td>energy from natural sources that don't run out</td><td><em>Solar and wind power are forms of renewable energy.</em></td></tr>
+      <tr><td>biodiversity</td><td>the variety of all living species on Earth</td><td><em>Rainforests have very high biodiversity.</em></td></tr>
+      <tr><td>extinction</td><td>when a species dies out completely</td><td><em>Many animals are at risk of extinction.</em></td></tr>
+      <tr><td>deforestation</td><td>cutting down large areas of forest</td><td><em>Deforestation destroys animal habitats.</em></td></tr>
+      <tr><td>emission</td><td>a gas or other substance released into the air</td><td><em>Car emissions contribute to air pollution.</em></td></tr>
+      <tr><td>drought</td><td>a long period with little or no rain</td><td><em>Droughts are becoming more common due to climate change.</em></td></tr>
+      <tr><td>sustainable</td><td>able to continue without damaging the environment</td><td><em>We need sustainable ways to produce food.</em></td></tr>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="ecology-ex1">
+    <div class="exercise-card">
+      <h3>Exercise 1 — Fill in the gaps (10 sentences)</h3>
+      <div class="wordbox">Words: <em>deforestation · extinction · fossil fuels · sustainable · emissions · greenhouse gas · global warming · renewable energy · drought · biodiversity</em></div>
+      <div class="gap-list">
+        <div class="gap-row">1. Cars and factories release harmful <input class="gap-input" data-ans="emissions" id="ec1"> into the atmosphere.</div>
+        <div class="gap-row">2. We must stop burning <input class="gap-input" data-ans="fossil fuels" id="ec2"> and switch to clean energy.</div>
+        <div class="gap-row">3. <input class="gap-input" data-ans="Deforestation" id="ec3"> in the Amazon destroys the habitat of millions of species.</div>
+        <div class="gap-row">4. Scientists warn that many animals face <input class="gap-input" data-ans="extinction" id="ec4"> within the next 50 years.</div>
+        <div class="gap-row">5. A <input class="gap-input" data-ans="sustainable" id="ec5"> lifestyle means living in a way that protects the planet.</div>
+        <div class="gap-row">6. CO₂ is the most well-known <input class="gap-input" data-ans="greenhouse gas" id="ec6"> causing climate change.</div>
+        <div class="gap-row">7. <input class="gap-input" data-ans="Global warming" id="ec7"> has led to rising sea levels and melting glaciers.</div>
+        <div class="gap-row">8. Solar panels and wind turbines are examples of <input class="gap-input" data-ans="renewable energy" id="ec8">.</div>
+        <div class="gap-row">9. A severe <input class="gap-input" data-ans="drought" id="ec9"> can destroy crops and lead to food shortages.</div>
+        <div class="gap-row">10. Tropical rainforests contain an extremely high level of <input class="gap-input" data-ans="biodiversity" id="ec10">.</div>
+      </div>
+      <button class="check-btn" onclick="checkGaps('ecology','ex1',['ec1','ec2','ec3','ec4','ec5','ec6','ec7','ec8','ec9','ec10'])">Check answers</button>
+      <div class="feedback" id="fb-ecology-ex1" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="ecology-ex2">
+    <div class="exercise-card">
+      <h3>Exercise 2 — Multiple choice (10 questions)</h3>
+      <p class="vocab-intro">Choose the correct answer for each question.</p>
+      <div class="mc-block" id="mc-ecology">
+        <div class="mc-q-item"><p>1. What is the main cause of global warming?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',0)">volcanic eruptions</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',0)">burning fossil fuels</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',0)">wind energy production</button></div></div>
+        <div class="mc-q-item"><p>2. Which of the following is a renewable energy source?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',1)">solar power</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',1)">natural gas</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',1)">coal</button></div></div>
+        <div class="mc-q-item"><p>3. What does "biodiversity" mean?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',2)">the amount of CO₂ in the atmosphere</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',2)">the variety of all living species on Earth</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',2)">the quality of air in a city</button></div></div>
+        <div class="mc-q-item"><p>4. What is a "drought"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',3)">a very heavy rainfall</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',3)">a type of greenhouse gas</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',3)">a long period with little or no rain</button></div></div>
+        <div class="mc-q-item"><p>5. "Deforestation" means ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',4)">cutting down large areas of forest</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',4)">planting new trees</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',4)">protecting wildlife reserves</button></div></div>
+        <div class="mc-q-item"><p>6. What happens when a species goes "extinct"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',5)">it migrates to a warmer region</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',5)">it dies out completely and forever</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',5)">it becomes protected by law</button></div></div>
+        <div class="mc-q-item"><p>7. CO₂ is an example of a ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',6)">fossil fuel</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',6)">renewable energy source</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',6)">greenhouse gas</button></div></div>
+        <div class="mc-q-item"><p>8. Which of the following is a sustainable action?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',7)">burning more coal for electricity</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',7)">using public transport instead of a car</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',7)">cutting down forests for farmland</button></div></div>
+        <div class="mc-q-item"><p>9. Car exhaust fumes are an example of ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',8)">emissions</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',8)">biodiversity</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',8)">renewable energy</button></div></div>
+        <div class="mc-q-item"><p>10. What does "global warming" refer to?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',9)">the cooling of the oceans</button><button class="mc-btn" onclick="mcA(this,'correct','mc-ecology',9)">the rise in the Earth's average temperature</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-ecology',9)">the loss of rainforests</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="ecology-ex3">
+    <div class="exercise-card">
+      <h3>Exercise 3 — Match the words (10 pairs)</h3>
+      <p class="vocab-intro">Click a word on the left, then click its matching definition on the right.</p>
+      <div class="match-grid">
+        <div class="match-col" id="match-ecology-words">
+          <div class="match-item" data-group="ecology" data-id="ew1" onclick="matchClick(this)">drought</div>
+          <div class="match-item" data-group="ecology" data-id="ew2" onclick="matchClick(this)">greenhouse gas</div>
+          <div class="match-item" data-group="ecology" data-id="ew3" onclick="matchClick(this)">renewable energy</div>
+          <div class="match-item" data-group="ecology" data-id="ew4" onclick="matchClick(this)">deforestation</div>
+          <div class="match-item" data-group="ecology" data-id="ew5" onclick="matchClick(this)">extinction</div>
+          <div class="match-item" data-group="ecology" data-id="ew6" onclick="matchClick(this)">biodiversity</div>
+          <div class="match-item" data-group="ecology" data-id="ew7" onclick="matchClick(this)">emission</div>
+          <div class="match-item" data-group="ecology" data-id="ew8" onclick="matchClick(this)">fossil fuels</div>
+          <div class="match-item" data-group="ecology" data-id="ew9" onclick="matchClick(this)">sustainable</div>
+          <div class="match-item" data-group="ecology" data-id="ew10" onclick="matchClick(this)">global warming</div>
+        </div>
+        <div class="match-col" id="match-ecology-defs">
+          <div class="match-item" data-group="ecology" data-id="ed1" onclick="matchClick(this)">a long dry period without rain</div>
+          <div class="match-item" data-group="ecology" data-id="ed2" onclick="matchClick(this)">a gas that traps heat in the atmosphere</div>
+          <div class="match-item" data-group="ecology" data-id="ed3" onclick="matchClick(this)">energy that won't run out</div>
+          <div class="match-item" data-group="ecology" data-id="ed4" onclick="matchClick(this)">cutting down large areas of trees</div>
+          <div class="match-item" data-group="ecology" data-id="ed5" onclick="matchClick(this)">when a species dies out completely</div>
+          <div class="match-item" data-group="ecology" data-id="ed6" onclick="matchClick(this)">the variety of all living species on Earth</div>
+          <div class="match-item" data-group="ecology" data-id="ed7" onclick="matchClick(this)">the rise in the Earth's average temperature</div>
+          <div class="match-item" data-group="ecology" data-id="ed8" onclick="matchClick(this)">a gas or substance released into the air</div>
+          <div class="match-item" data-group="ecology" data-id="ed9" onclick="matchClick(this)">coal, oil, and gas formed from ancient life</div>
+          <div class="match-item" data-group="ecology" data-id="ed10" onclick="matchClick(this)">able to continue without harming the planet</div>
+        </div>
+      </div>
+      <div class="feedback" id="fb-ecology-ex3" style="display:none;margin-top:0.75rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== GLOBALISATION ========== -->
+<div class="section" id="sec-globalisation">
+  <div class="progress-bar-wrap"><div class="progress-bar" id="pb-globalisation" style="width:0%"></div></div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showTab('globalisation','expl',this)">Overview</button>
+    <button class="tab" onclick="showTab('globalisation','vocab',this)">Vocabulary</button>
+    <button class="tab" onclick="showTab('globalisation','ex1',this)">Exercise 1</button>
+    <button class="tab" onclick="showTab('globalisation','ex2',this)">Exercise 2</button>
+    <button class="tab" onclick="showTab('globalisation','ex3',this)">Exercise 3</button>
+  </div>
+
+  <div class="tab-panel active" id="globalisation-expl">
+    <div class="expl-block"><h3>What is globalisation?</h3><p>Globalisation describes the process by which the world becomes more connected. Countries trade with each other, share ideas, and influence each other's cultures. Thanks to the internet and modern transport, goods, money, and information move around the world faster than ever before.</p></div>
+    <div class="expl-block"><h3>Advantages and disadvantages</h3><p>Globalisation creates new jobs and lowers prices for consumers. It allows people to share ideas and technology. However, it can also lead to <strong>inequality</strong> — rich countries often benefit more than poor ones. Local industries may suffer when they cannot compete with cheap imported goods.</p></div>
+    <div class="expl-block"><h3>Key players and concepts</h3><p><strong>Multinational corporations (MNCs)</strong> are companies that operate in many countries. They create jobs but are often criticised for paying low wages. <strong>Free trade</strong> means countries can trade without paying taxes on imported goods (<strong>tariffs</strong>). International organisations like the WTO help regulate world trade.</p></div>
+    <div class="expl-block"><h3>Culture and society</h3><p>Globalisation also affects culture. <strong>Cultural exchange</strong> means people share music, food, fashion, and ideas across borders. Some people worry that local traditions are lost when global brands dominate. Countries become more <strong>interdependent</strong> — they rely on each other for trade, energy, and food.</p></div>
+  </div>
+
+  <div class="tab-panel" id="globalisation-vocab">
+    <p class="vocab-intro">Learn the key words for this topic. Read each word, its meaning, and the example sentence carefully.</p>
+    <table class="vocab-table">
+      <tr><th>Word / Phrase</th><th>Meaning</th><th>Example sentence</th></tr>
+      <tr><td>globalisation</td><td>the process of the world becoming more connected</td><td><em>Globalisation has made trade much faster.</em></td></tr>
+      <tr><td>multinational corporation</td><td>a company operating in many countries</td><td><em>Nike is a well-known multinational corporation.</em></td></tr>
+      <tr><td>free trade</td><td>trade without taxes or barriers between countries</td><td><em>Free trade agreements help reduce prices.</em></td></tr>
+      <tr><td>tariff</td><td>a tax on imported goods</td><td><em>The government placed a tariff on foreign steel.</em></td></tr>
+      <tr><td>inequality</td><td>unfair differences in wealth or opportunities</td><td><em>Globalisation can increase inequality between countries.</em></td></tr>
+      <tr><td>supply chain</td><td>the system of producing and delivering goods</td><td><em>The supply chain for smartphones spans many countries.</em></td></tr>
+      <tr><td>outsourcing</td><td>moving production to another country to save costs</td><td><em>Many companies outsource manufacturing to Asia.</em></td></tr>
+      <tr><td>consumer</td><td>a person who buys goods or services</td><td><em>Consumers benefit from lower prices due to globalisation.</em></td></tr>
+      <tr><td>cultural exchange</td><td>sharing of customs and ideas between cultures</td><td><em>The internet enables fast cultural exchange.</em></td></tr>
+      <tr><td>interdependence</td><td>when countries rely on each other</td><td><em>Global trade creates economic interdependence.</em></td></tr>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="globalisation-ex1">
+    <div class="exercise-card">
+      <h3>Exercise 1 — Fill in the gaps (10 sentences)</h3>
+      <div class="wordbox">Words: <em>tariff · outsourcing · supply chain · free trade · inequality · consumer · interdependence · cultural exchange · multinational corporation · globalisation</em></div>
+      <div class="gap-list">
+        <div class="gap-row">1. The EU promotes <input class="gap-input" data-ans="free trade" id="gl1"> between its member states.</div>
+        <div class="gap-row">2. The <input class="gap-input" data-ans="supply chain" id="gl2"> for a typical smartphone involves over 40 countries.</div>
+        <div class="gap-row">3. The USA introduced a <input class="gap-input" data-ans="tariff" id="gl3"> on Chinese goods to protect American jobs.</div>
+        <div class="gap-row">4. <input class="gap-input" data-ans="Outsourcing" id="gl4"> production to cheaper countries can reduce labour costs.</div>
+        <div class="gap-row">5. Growing <input class="gap-input" data-ans="inequality" id="gl5"> means that the gap between rich and poor continues to widen.</div>
+        <div class="gap-row">6. As a <input class="gap-input" data-ans="consumer" id="gl6">, you can choose to buy products made under fair conditions.</div>
+        <div class="gap-row">7. <input class="gap-input" data-ans="Globalisation" id="gl7"> has made it possible to send a message anywhere in the world instantly.</div>
+        <div class="gap-row">8. Nike is an example of a <input class="gap-input" data-ans="multinational corporation" id="gl8"> with factories in many countries.</div>
+        <div class="gap-row">9. <input class="gap-input" data-ans="Cultural exchange" id="gl9"> allows people to discover new music, food, and traditions.</div>
+        <div class="gap-row">10. Economic <input class="gap-input" data-ans="interdependence" id="gl10"> means that a crisis in one country can affect others worldwide.</div>
+      </div>
+      <button class="check-btn" onclick="checkGaps('globalisation','ex1',['gl1','gl2','gl3','gl4','gl5','gl6','gl7','gl8','gl9','gl10'])">Check answers</button>
+      <div class="feedback" id="fb-globalisation-ex1" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="globalisation-ex2">
+    <div class="exercise-card">
+      <h3>Exercise 2 — Multiple choice (10 questions)</h3>
+      <p class="vocab-intro">Choose the correct answer for each question.</p>
+      <div class="mc-block" id="mc-globalisation">
+        <div class="mc-q-item"><p>1. What is a tariff?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',0)">a type of renewable energy</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',0)">a tax on imported goods</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',0)">a free trade agreement</button></div></div>
+        <div class="mc-q-item"><p>2. Which of the following is a disadvantage of globalisation?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',1)">local industries may lose jobs</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',1)">goods become more expensive</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',1)">countries become less connected</button></div></div>
+        <div class="mc-q-item"><p>3. What does "interdependence" mean?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',2)">a country producing everything itself</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',2)">countries relying on each other</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',2)">a country refusing to trade</button></div></div>
+        <div class="mc-q-item"><p>4. What is "outsourcing"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',3)">buying goods from a local market</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',3)">raising tariffs on imported goods</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',3)">moving production to another country to save costs</button></div></div>
+        <div class="mc-q-item"><p>5. A company that operates in many different countries is called a ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',4)">multinational corporation</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',4)">free trade zone</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',4)">supply chain</button></div></div>
+        <div class="mc-q-item"><p>6. "Free trade" means ___.</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',5)">trade that is completely free of charge</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',5)">trade without taxes or barriers between countries</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',5)">trade only within one country</button></div></div>
+        <div class="mc-q-item"><p>7. What is "cultural exchange"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',6)">replacing local culture with a global one</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',6)">importing foreign goods</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',6)">sharing customs and ideas between cultures</button></div></div>
+        <div class="mc-q-item"><p>8. Which best describes the "supply chain"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',7)">the system of producing and delivering goods</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',7)">a tax placed on foreign products</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',7)">a type of trade agreement</button></div></div>
+        <div class="mc-q-item"><p>9. Who is a "consumer"?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',8)">a factory worker</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',8)">a person who buys goods or services</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',8)">a government official</button></div></div>
+        <div class="mc-q-item"><p>10. Which sentence about globalisation is correct?</p><div class="mc-options"><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',9)">it always benefits all countries equally</button><button class="mc-btn" onclick="mcA(this,'wrong','mc-globalisation',9)">it reduces international trade</button><button class="mc-btn" onclick="mcA(this,'correct','mc-globalisation',9)">it connects countries but can increase inequality</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="globalisation-ex3">
+    <div class="exercise-card">
+      <h3>Exercise 3 — Match the words (10 pairs)</h3>
+      <p class="vocab-intro">Click a word on the left, then click its matching definition on the right.</p>
+      <div class="match-grid">
+        <div class="match-col" id="match-globalisation-words">
+          <div class="match-item" data-group="globalisation" data-id="gw1" onclick="matchClick(this)">outsourcing</div>
+          <div class="match-item" data-group="globalisation" data-id="gw2" onclick="matchClick(this)">consumer</div>
+          <div class="match-item" data-group="globalisation" data-id="gw3" onclick="matchClick(this)">cultural exchange</div>
+          <div class="match-item" data-group="globalisation" data-id="gw4" onclick="matchClick(this)">interdependence</div>
+          <div class="match-item" data-group="globalisation" data-id="gw5" onclick="matchClick(this)">tariff</div>
+          <div class="match-item" data-group="globalisation" data-id="gw6" onclick="matchClick(this)">supply chain</div>
+          <div class="match-item" data-group="globalisation" data-id="gw7" onclick="matchClick(this)">inequality</div>
+          <div class="match-item" data-group="globalisation" data-id="gw8" onclick="matchClick(this)">free trade</div>
+          <div class="match-item" data-group="globalisation" data-id="gw9" onclick="matchClick(this)">multinational corporation</div>
+          <div class="match-item" data-group="globalisation" data-id="gw10" onclick="matchClick(this)">globalisation</div>
+        </div>
+        <div class="match-col" id="match-globalisation-defs">
+          <div class="match-item" data-group="globalisation" data-id="gd1" onclick="matchClick(this)">moving production abroad to save costs</div>
+          <div class="match-item" data-group="globalisation" data-id="gd2" onclick="matchClick(this)">a person who buys goods or services</div>
+          <div class="match-item" data-group="globalisation" data-id="gd3" onclick="matchClick(this)">sharing customs and ideas between cultures</div>
+          <div class="match-item" data-group="globalisation" data-id="gd4" onclick="matchClick(this)">when countries rely on each other</div>
+          <div class="match-item" data-group="globalisation" data-id="gd5" onclick="matchClick(this)">a tax on imported goods</div>
+          <div class="match-item" data-group="globalisation" data-id="gd6" onclick="matchClick(this)">the system of producing and delivering goods</div>
+          <div class="match-item" data-group="globalisation" data-id="gd7" onclick="matchClick(this)">unfair differences in wealth or opportunities</div>
+          <div class="match-item" data-group="globalisation" data-id="gd8" onclick="matchClick(this)">trade without taxes between countries</div>
+          <div class="match-item" data-group="globalisation" data-id="gd9" onclick="matchClick(this)">a company operating in many countries</div>
+          <div class="match-item" data-group="globalisation" data-id="gd10" onclick="matchClick(this)">the process of the world becoming more connected</div>
+        </div>
+      </div>
+      <div class="feedback" id="fb-globalisation-ex3" style="display:none;margin-top:0.75rem"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const matchPairs={
+  'mw1':'md1','mw2':'md2','mw3':'md5','mw4':'md3','mw5':'md7','mw6':'md6','mw7':'md8','mw8':'md9','mw9':'md10','mw10':'md4',
+  'ew1':'ed1','ew2':'ed2','ew3':'ed3','ew4':'ed4','ew5':'ed5','ew6':'ed6','ew7':'ed8','ew8':'ed9','ew9':'ed10','ew10':'ed7',
+  'gw1':'gd1','gw2':'gd2','gw3':'gd3','gw4':'gd4','gw5':'gd5','gw6':'gd6','gw7':'gd7','gw8':'gd8','gw9':'gd9','gw10':'gd10'
+};
+const allPairs={};
+Object.entries(matchPairs).forEach(([k,v])=>{allPairs[k]=v;allPairs[v]=k});
+const progress={migration:{ex1:false,ex2:false,ex3:false},ecology:{ex1:false,ex2:false,ex3:false},globalisation:{ex1:false,ex2:false,ex3:false}};
+const mcDone={};
+let matchSel=null;
+
+function showTopic(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function showTab(topic,tab,el){
+  const sec=document.getElementById('sec-'+topic);
+  sec.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  sec.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(topic+'-'+tab).classList.add('active');
+}
+function updateProgress(topic){
+  const done=Object.values(progress[topic]).filter(Boolean).length;
+  document.getElementById('pb-'+topic).style.width=Math.round(done/3*100)+'%';
+  if(done===3) document.getElementById('chk-'+topic).classList.add('done');
+}
+function checkGaps(topic,ex,ids){
+  let ok=0;
+  ids.forEach(id=>{
+    const inp=document.getElementById(id);
+    const ans=inp.dataset.ans.toLowerCase().trim();
+    const val=inp.value.toLowerCase().trim();
+    if(val===ans){inp.classList.add('correct');inp.classList.remove('wrong');ok++;}
+    else{inp.classList.add('wrong');inp.classList.remove('correct');}
+  });
+  const fb=document.getElementById('fb-'+topic+'-'+ex);
+  fb.style.display='block';
+  if(ok===ids.length){
+    fb.className='feedback ok';fb.textContent='All '+ids.length+' correct! Well done.';
+    if(!progress[topic][ex]){progress[topic][ex]=true;updateProgress(topic);}
+  } else {
+    fb.className='feedback err';fb.textContent=ok+' of '+ids.length+' correct. Check your spelling and try again.';
+  }
+}
+function mcA(btn,type,group,qIdx){
+  const container=document.getElementById(group);
+  const q=container.querySelectorAll('.mc-q-item')[qIdx];
+  if(q.querySelector('.correct,.wrong'))return;
+  q.querySelectorAll('.mc-btn').forEach(b=>b.disabled=true);
+  btn.classList.add(type);
+  const topic=group.replace('mc-','');
+  if(!mcDone[group])mcDone[group]={};
+  mcDone[group][qIdx]=true;
+  if(Object.keys(mcDone[group]).length===container.querySelectorAll('.mc-q-item').length){
+    if(!progress[topic]['ex2']){progress[topic]['ex2']=true;updateProgress(topic);}
+  }
+}
+function shuffleCol(id){
+  const col=document.getElementById(id);
+  if(!col)return;
+  const items=[...col.querySelectorAll('.match-item')];
+  for(let i=items.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    col.appendChild(items[j]);
+    items.splice(j,1,items[i]);
+  }
+}
+document.addEventListener('DOMContentLoaded',function(){
+  shuffleCol('match-migration-defs');
+  shuffleCol('match-ecology-defs');
+  shuffleCol('match-globalisation-defs');
+});
+function matchClick(el){
+  if(el.classList.contains('matched'))return;
+  const group=el.dataset.group;
+  const id=el.dataset.id;
+  if(!matchSel){
+    matchSel=el;el.classList.add('selected');
+  } else {
+    if(matchSel===el){matchSel=null;el.classList.remove('selected');return;}
+    const selId=matchSel.dataset.id;
+    if(allPairs[selId]===id){
+      el.classList.add('matched');matchSel.classList.add('matched');
+      el.classList.remove('selected');matchSel.classList.remove('selected');
+      matchSel=null;
+      const wordsCol=document.getElementById('match-'+group+'-words');
+      const defsCol=document.getElementById('match-'+group+'-defs');
+      const allItems=[...wordsCol.querySelectorAll('.match-item'),...defsCol.querySelectorAll('.match-item')];
+      if(allItems.every(i=>i.classList.contains('matched'))){
+        const fb=document.getElementById('fb-'+group+'-ex3');
+        fb.style.display='block';fb.className='feedback ok';fb.textContent='All 10 pairs matched correctly! Great work.';
+        if(!progress[group]['ex3']){progress[group]['ex3']=true;updateProgress(group);}
+      }
+    } else {
+      el.classList.add('wrong-pick');matchSel.classList.add('wrong-pick');
+      const prev=matchSel;matchSel=null;
+      setTimeout(()=>{el.classList.remove('wrong-pick');prev.classList.remove('wrong-pick');prev.classList.remove('selected');},400);
+    }
+  }
+}
+</script>
+</body>
+</html>
